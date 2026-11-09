@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air Traffic Overview Dashboard</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0c1725;
+  color: #eaf1fa;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1250px;
+  margin: auto;
+}
+
+header {
+  background: #17283b;
+  padding: 22px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+header h1 {
+  font-size: 23px;
+}
+
+.subtitle {
+  color: #9fb1c5;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.online {
+  color: #63dda6;
+  font-size: 13px;
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid #40566e;
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: #223b55;
+  color: white;
+}
+
+button:hover, button.active {
+  background: #287fc2;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #192b40;
+  border: 1px solid #334a62;
+  border-radius: 10px;
+  padding: 17px;
+}
+
+.card p {
+  color: #a9b8c9;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.number {
+  font-size: 29px;
+  font-weight: bold;
+}
+
+.red { color: #ff9298; }
+.yellow { color: #ffd27d; }
+.green { color: #6cdda9; }
+.purple { color: #c6b7ff; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+}
+
+h2 {
+  font-size: 17px;
+  margin-bottom: 15px;
+}
+
+input, select {
+  padding: 11px;
+  background: #101e2e;
+  color: white;
+  border: 1px solid #40566e;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.flight {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #35495e;
+  padding: 15px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.flight:hover {
+  background: #29435d;
+}
+
+.flight.selected {
+  background: #29435d;
+  border-left: 3px solid #50aaff;
+}
+
+.status {
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.high {
+  background: #572e37;
+  color: #ffb5bb;
+}
+
+.medium {
+  background: #554527;
+  color: #ffdc91;
+}
+
+.normal {
+  background: #194b3c;
+  color: #9ce5c5;
+}
+
+.message {
+  background: #22364c;
+  border: 1px solid #40566e;
+  padding: 12px;
+  border-radius: 7px;
+  margin-top: 10px;
+}
+
+.message p {
+  font-size: 13px;
+  margin: 8px 0;
+  color: #bdcbd9;
+}
+
+.detail {
+  padding: 12px 0;
+  border-bottom: 1px solid #40566e;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.panel {
+  margin-top: 18px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#notification {
+  background: #194b3c;
+  color: white;
+  padding: 12px;
+  border-radius: 7px;
+  margin-bottom: 15px;
+  display: none;
+}
+
+.activity {
+  padding: 12px;
+  border-bottom: 1px solid #40566e;
+  font-size: 13px;
+}
+
+.activity small {
+  color: #a9b8c9;
+}
+
+@media(max-width:800px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:480px) {
+  body {
+    padding: 10px;
+  }
+  .flight {
+    grid-template-columns: 1fr 1fr;
+  }
+  .number {
+    font-size: 23px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <h1>✈ AIR TRAFFIC OPERATIONS</h1>
+    <div class="subtitle">Overview Dashboard | Flight Monitoring</div>
+  </div>
+  <div>
+    <div class="online">● SYSTEM ONLINE</div>
+    <div id="clock" class="subtitle"></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('overview',this)">Overview</button>
+  <button onclick="showTab('flights',this)">Flights</button>
+  <button onclick="showTab('communications',this)">Communications</button>
+  <button onclick="showTab('activity',this)">Activity Log</button>
+</nav>
+
+<div id="notification" role="status" aria-live="polite"></div>
+
+<section id="overview">
+<div class="stats">
+  <div class="card">
+    <p>Active Flights</p>
+    <div class="number" id="activeCount">12</div>
+  </div>
+  <div class="card">
+    <p>High Priority</p>
+    <div class="number red" id="highCount">3</div>
+  </div>
+  <div class="card">
+    <p>Monitoring</p>
+    <div class="number yellow" id="mediumCount">4</div>
+  </div>
+  <div class="card">
+    <p>Pending Messages</p>
+    <div class="number purple" id="pendingCount">3</div>
+  </div>
+</div>
+
+<div class="layout">
+
+<div class="card">
+  <h2>Flight Monitoring</h2>
+
+  <input id="search"
+    placeholder="Search flight number..."
+    oninput="renderFlights()">
+
+  <select id="filter" onchange="renderFlights()">
+    <option value="all">All Priorities</option>
+    <option value="high">High Priority</option>
+    <option value="medium">Monitoring</option>
+    <option value="normal">Normal</option>
+  </select>
+
+  <div class="flight" style="font-weight:bold">
+    <span>Flight</span>
+    <span>Altitude</span>
+    <span>Destination</span>
+    <span>Status</span>
+  </div>
+
+  <div id="flightList"></div>
+</div>
+
+<div>
+
+<div class="card">
+  <h2>Selected Flight Details</h2>
+  <div id="flightDetails">
+    Select a flight to see details.
+  </div>
+</div>
+
+<div class="card panel">
+  <h2>Communication Center</h2>
+  <div id="messagePreview"></div>
+  <button onclick="showTab('communications')">
+    View All Messages →
+  </button>
+</div>
+
+</div>
+</div>
+
+<div class="card panel">
+  <h2>Flight Priority Overview</h2>
+  <div id="priorityOverview"></div>
+</div>
+</section>
+
+<section id="flights" class="hidden">
+  <div class="card">
+    <h2>All Flights</h2>
+    <input id="searchAll"
+      placeholder="Search flights..."
+      oninput="renderAllFlights()">
+    <div id="allFlights"></div>
+  </div>
+</section>
+
+<section id="communications" class="hidden">
+  <div class="card">
+    <h2>Communication & Instructions</h2>
+    <p class="subtitle">
+      Review messages and record acknowledgments.
+    </p>
+    <div id="allMessages"></div>
+  </div>
+</section>
+
+<section id="activity" class="hidden">
+  <div class="card">
+    <h2>Recent Activity Log</h2>
+    <div id="activityLog"></div>
+  </div>
+</section>
+
+<div class="panel">
+  <button onclick="resetDemo()">↻ Reset Prototype</button>
+  <button onclick="exportCSV()">↓ Export CSV</button>
+</div>
+
+<p class="subtitle panel">
+  Prototype version 1.0 | Simulated aviation data |
+  Not for operational air traffic control.
+</p>
+
+</div>
+
+<script>
+// SIMULATED FLIGHT DATA
+
+const initialFlights = [
+  {id:"122",alt:"345",dest:"Bos",priority:"normal"},
+  {id:"381",alt:"350",dest:"Bos",priority:"high"},
+  {id:"121",alt:"300",dest:"New York",priority:"gete change"},
+];
+
+const initialMessages = [
+  {id:1,flight:"381",text:"Simulated instruction awaiting acknowledgment.",status:"pending"},
+  {id:4,flight:"121",text:" gete change.",status:"acknowledged"},
+];  
+let flights = JSON.parse(JSON.stringify(initialFlights));
+let messages = JSON.parse(JSON.stringify(initialMessages));
+let activities = ["Dashboard initialized."];
+let selectedFlight = null;
+
+function notify(text) {
+  const box = document.getElementById("notification");
+  box.textContent = text;
+  box.style.display = "block";
+  setTimeout(() => box.style.display = "none", 2500);
+}
+
+function showTab(tab, button) {
+  ["overview","flights","communications","activity"].forEach(id => {
+    document.getElementById(id).classList.toggle("hidden",id!==tab);
+  });
+
+  document.querySelectorAll("nav button").forEach(b => {
+    b.classList.remove("active");
+  });
+
+  if(button) button.classList.add("active");
+
+  if(tab==="flights") renderAllFlights();
+  if(tab==="communications") renderMessages();
+  if(tab==="activity") renderActivity();
+}
+
+function logActivity(text) {
+  const time = new Date().toLocaleTimeString();
+  activities.unshift(time+" — "+text);
+  renderActivity();
+}
+
+function updateCounts() {
+  document.getElementById("activeCount").textContent=flights.length;
+
+  document.getElementById("highCount").textContent=
+    flights.filter(f=>f.priority==="high").length;
+
+  document.getElementById("mediumCount").textContent=
+    flights.filter(f=>f.priority==="medium").length;
+
+  document.getElementById("pendingCount").textContent=
+    messages.filter(m=>m.status==="pending").length;
+}
+
+function badge(priority) {
+  const labels = {
+    high:"HIGH",
+    medium:"MONITOR",
+    normal:"NORMAL"
+  };
+
+  return `<span class="status ${priority}">
+    ● ${labels[priority]}
+  </span>`;
+}
+
+function renderFlights() {
+  const search=document.getElementById("search").value.toLowerCase();
+  const filter=document.getElementById("filter").value;
+
+  const filtered=flights.filter(f =>
+    f.id.toLowerCase().includes(search) &&
+    (filter==="all" || f.priority===filter)
+  );
+
+  document.getElementById("flightList").innerHTML=
+    filtered.map(f=>`
+      <div class="flight ${selectedFlight===f.id?'selected':''}"
+           onclick="selectFlight('${f.id}')">
+        <strong>${f.id}</strong>
+        <span>${f.alt} ft</span>
+        <span>${f.dest}</span>
+        ${badge(f.priority)}
+      </div>
+    `).join("") || "<p>No matching flights found.</p>";
+
+  renderPriority();
+}
+
+function selectFlight(id) {
+  selectedFlight=id;
+
+  const f=flights.find(x=>x.id===id);
+
+  document.getElementById("flightDetails").innerHTML=`
+    <h2>${f.id}</h2>
+    ${badge(f.priority)}
+    <div class="detail">
+      <span>Altitude</span>
+      <strong>${f.alt} ft</strong>
+    </div>
+    <div class="detail">
+      <span>Destination</span>
+      <strong>${f.dest}</strong>
+    </div>
+    <div class="detail">
+      <span>Priority</span>
+      <strong>${f.priority.toUpperCase()}</strong>
+    </div>
+    <p class="subtitle" style="margin-top:12px">
+      Illustrative flight record only.
+    </p>
+  `;
+
+  renderFlights();
+  logActivity("Selected flight "+id);
+}
+
+function renderAllFlights() {
+  const q=document.getElementById("searchAll").value.toLowerCase();
+
+  document.getElementById("allFlights").innerHTML=
+    flights.filter(f=>f.id.toLowerCase().includes(q))
+    .map(f=>`
+      <div class="flight" onclick="selectFlight('${f.id}');showTab('overview')">
+        <strong>${f.id}</strong>
+        <span>${f.alt} ft</span>
+        <span>${f.dest}</span>
+        ${badge(f.priority)}
+      </div>
+    `).join("");
+}
+
+function renderMessages() {
+  document.getElementById("allMessages").innerHTML=
+    messages.map(m=>`
+      <div class="message">
+        <strong>${m.flight}</strong>
+        <span class="status ${m.status==="pending"?"medium":"normal"}">
+          ${m.status.toUpperCase()}
+        </span>
+        <p>${m.text}</p>
+        ${m.status==="pending"?
+          `<button onclick="acknowledge(${m.id})">
+            ✓ Acknowledge
+          </button>`:
+          "<small>Already acknowledged</small>"
+        }
+      </div>
+    `).join("");
+
+  renderPreview();
+  updateCounts();
+}
+
+function renderPreview() {
+  const pending=messages.filter(m=>m.status==="pending");
+
+  document.getElementById("messagePreview").innerHTML=
+    pending.slice(0,3).map(m=>`
+      <div class="message">
+        <strong>${m.flight}</strong>
+        <p>${m.text}</p>
+        <span class="status medium">PENDING</span>
+      </div>
+    `).join("") || "<p>No pending messages.</p>";
+}
+
+function acknowledge(id) {
+  const m=messages.find(x=>x.id===id);
+
+  if(!m || m.status!=="pending") return;
+
+  m.status="acknowledged";
+
+  logActivity("Acknowledged message for "+m.flight);
+  notify("Message acknowledgment recorded.");
+
+  renderMessages();
+}
+
+function renderPriority() {
+  const levels=["high","medium","normal"];
+
+  document.getElementById("priorityOverview").innerHTML=
+    levels.map(level=>{
+      const count=flights.filter(f=>f.priority===level).length;
+
+      return `
+        <div class="detail">
+          ${badge(level)}
+          <strong>${count} flights</strong>
+        </div>
+      `;
+    }).join("");
+}
+
+function renderActivity() {
+  document.getElementById("activityLog").innerHTML=
+    activities.map(a=>`
+      <div class="activity">${a}</div>
+    `).join("");
+}
+
+function exportCSV() {
+  const rows=[
+    ["Flight","Altitude","Destination","Priority"],
+    ...flights.map(f=>[
+      f.id,f.alt,f.dest,f.priority
+    ])
+  ];
+
+  const csv=rows.map(row=>row.join(",")).join("\n");
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+
+  const link=document.createElement("a");
+  link.href=url;
+  link.download="flight-overview.csv";
+  link.click();
+
+  URL.revokeObjectURL(url);
+
+  notify("CSV file exported.");
+}
+
+function resetDemo() {
+  flights=JSON.parse(JSON.stringify(initialFlights));
+  messages=JSON.parse(JSON.stringify(initialMessages));
+  activities=["Dashboard reset to original simulated data."];
+  selectedFlight=null;
+
+  document.getElementById("search").value="";
+  document.getElementById("filter").value="all";
+  document.getElementById("searchAll").value="";
+
+  document.getElementById("flightDetails").textContent=
+    "Select a flight to see details.";
+
+  renderAll();
+  notify("Prototype successfully reset.");
+}
+
+function renderAll() {
+  updateCounts();
+  renderFlights();
+  renderAllFlights();
+  renderMessages();
+  renderActivity();
+  renderPriority();
+}
+
+function updateClock() {
+  document.getElementById("clock").textContent=
+    new Date().toLocaleTimeString();
+}
+
+setInterval(updateClock,1000);
+
+updateClock();
+renderAll();
+
+</script>
+
+</body>
+</html>
